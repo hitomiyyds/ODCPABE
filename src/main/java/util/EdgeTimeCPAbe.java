@@ -19,10 +19,7 @@ import userKey.UserSplitKeys;
 import userKey.Userkeys;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EdgeTimeCPAbe {
     private static Logger log = Logger.getLogger(EdgeTimeCPAbe.class);
@@ -67,8 +64,9 @@ public class EdgeTimeCPAbe {
 
     /**
      * 用户注册算法
+     *
      * @param userID 用户ID
-     * @param GP　全局参数
+     * @param GP     　全局参数
      * @return　　返回用户密钥集
      */
     public static Userkeys userRegistry(String userID, GlobalParam GP) {
@@ -85,10 +83,10 @@ public class EdgeTimeCPAbe {
      * @param ASKS 属性机构私钥集
      * @return 输出具体属性机构的密钥
      */
-    public static AuthorityKey authoritySetup(String authorityID, GlobalParam GP, AuthoritySecretKeys ASKS, String... attributes) {
+    public static AuthorityKey authoritySetup(String authorityID, GlobalParam GP, AuthoritySecretKeys ASKS, Set<String> attributes) {
         // 初始化Pairing
         Pairing pairing = PairingFactory.getPairing(GP.getPairingParameters());
-//  GP.getAPKS() = new AuthorityPublicKeys()
+        // GP.getAPKS() = new AuthorityPublicKeys()
         AuthorityPublicKeys APKS = GP.getAPKS();
 
         Element egg = pairing.pairing(GP.getG(), GP.getG()).getImmutable();
@@ -98,19 +96,20 @@ public class EdgeTimeCPAbe {
         Element egg_ad = egg.powZn(ad);
         Element g_yd = GP.getG().powZn(yd);
 
-//  设置具体机构公钥
+        // 设置具体机构公钥
         AuthPublicKey authPublicKey = new AuthPublicKey(egg_ad.toBytes(), g_yd.toBytes());
-//  设置具体机构私钥
+        // 设置具体机构私钥
         AuthSecretKey authSecretKey = new AuthSecretKey(ad.toBytes(), yd.toBytes());
-//  设置具体机构密钥
+        /* 设置具体机构密钥 */
         AuthorityKey authorityKeys = new AuthorityKey(authorityID, authPublicKey, authSecretKey);
-//  属性映射到属性机构 tMap
+
+        /* 属性映射到属性机构 tMap */
         for (String attribute : attributes) {
             APKS.getTMap().put(attribute, authorityID);
         }
-//  属性机构映射机构公钥 tMapAPK
+        /* 属性机构映射机构公钥 tMapAPK */
         APKS.gettMapAPK().put(authorityID, authPublicKey);
-//  tMapASK 映射属性机构私钥
+        /* tMapASK 映射属性机构私钥 */
         ASKS.gettMapASK().put(authorityID, authSecretKey);
 
         return authorityKeys;
@@ -118,10 +117,11 @@ public class EdgeTimeCPAbe {
 
     /**
      * 生成加密参数
-     * @param GP 全局参数
-     * @param fID 文件ID
-     * @param begin 系统当前时间 减 10万
-     * @param end 系统当前时间 加 10万
+     *
+     * @param GP        全局参数
+     * @param fID       文件ID
+     * @param begin     系统当前时间 减 10万
+     * @param end       系统当前时间 加 10万
      * @param attribute 文件属性
      * @return 加密参数
      */
@@ -147,6 +147,7 @@ public class EdgeTimeCPAbe {
 
     /**
      * 加密
+     *
      * @param message
      * @param ct
      * @param arho
@@ -235,7 +236,7 @@ public class EdgeTimeCPAbe {
 
     }
 
-    public static UserAuthorityKey keyGen(String userID, GlobalParam GP, AuthorityKey AK, Userkeys userkeys, String... attributes) {
+    public static UserAuthorityKey keyGen(String userID, GlobalParam GP, AuthorityKey AK, Userkeys userkeys, Set<String> attributes) {
         Pairing pairing = PairingFactory.getPairing(GP.getPairingParameters());
 //        AuthorityPublicKeys AKS=GP.getAPKS();
         UserAuthorityKey uAKey = new UserAuthorityKey(AK.getAuthorityID());
@@ -356,8 +357,9 @@ public class EdgeTimeCPAbe {
             log.info("current Date:=" + ft.format(now));
             log.info("end Date:=" + ft.format(encParam.getEnd()));
             fUAttTx.setFromBytes(encParam.getEncParam());
-        } else
+        } else {
             throw new IllegalArgumentException("illegality time");
+        }
 
         Element fUAtt = HashFunction.hashToG1(pairing, attribute.getBytes()).getImmutable();
         Element uJ = pairing.getZr().newElement();
@@ -385,7 +387,9 @@ public class EdgeTimeCPAbe {
     public static Message decrypt(Ciphertext CT, Userkeys userkeys, GlobalParam GP) {
         List<Integer> toUse = CT.getAccessStructure().getIndexesList(userkeys.getAttributes());
 
-        if (null == toUse || toUse.isEmpty()) throw new IllegalArgumentException("not satisfied");
+        if (null == toUse || toUse.isEmpty()) {
+            throw new IllegalArgumentException("not satisfied");
+        }
 
         Pairing pairing = PairingFactory.getPairing(GP.getPairingParameters());
 
@@ -455,10 +459,19 @@ public class EdgeTimeCPAbe {
 
     }
 
+    /**
+     * 外包解密
+     * @param CT
+     * @param userkeys
+     * @param GP
+     * @return
+     */
     public static LocaleCiphertext outsourceDecrypt(Ciphertext CT, Userkeys userkeys, GlobalParam GP) {
         List<Integer> toUse = CT.getAccessStructure().getIndexesList(userkeys.getAttributes());
 
-        if (null == toUse || toUse.isEmpty()) throw new IllegalArgumentException("not satisfied");
+        if (null == toUse || toUse.isEmpty()) {
+            throw new IllegalArgumentException("not satisfied");
+        }
 
         LocaleCiphertext LC = new LocaleCiphertext(CT.getfID());
 

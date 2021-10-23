@@ -86,8 +86,9 @@ public class AccessStructure implements Serializable {
         }
 
         // find if satisfiable
-        if (!findIfSAT(policyTree))
+        if (!findIfSAT(policyTree)) {
             return null;
+        }
 
         // populate the list
         List<Integer> list = new LinkedList<Integer>();
