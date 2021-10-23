@@ -190,7 +190,7 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
                             separates.add(turePercent);
                             percents.add(turePercent);
                             percents.add(100 - turePercent);
-                            System.out.println("count = " + count + " turePercent = " + turePercent);
+                            // System.out.println("count = " + count + " turePercent = " + turePercent);
                         }
                         for (String attribute : attributes) {
                             int number = RateRandomNumber.produceRateRandomNumber(1, 100, separates, percents);
@@ -202,7 +202,7 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
                                 }
                             }
                             count++;
-                            System.out.println("第" + count + "次，此时随机数为：" + number + " True的概率是：" + turePercent);
+                            // System.out.println("第" + count + "次，此时随机数为：" + number + " True的概率是：" + turePercent);
                         }
                     } while (aidWithAttr.get(aids.get(i)).size() == 0);
                 }
