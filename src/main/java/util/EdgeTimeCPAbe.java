@@ -135,7 +135,7 @@ public class EdgeTimeCPAbe {
 
         Element tx = pairing.getZr().newElement();
         tx.setFromBytes(fileInfo.getBytes());
-
+        // F函数，映射属性到G的元素 hashToG1
         Element attG1 = HashFunction.hashToG1(pairing, attribute.getBytes()).getImmutable();
         Element encP = attG1.powZn(tx);
         encParam.setAttribute(attribute);
@@ -169,6 +169,7 @@ public class EdgeTimeCPAbe {
 
         Element s = pairing.getZr().newRandomElement().getImmutable();
 
+        // 属性矩阵的列数
         List<Element> v = new ArrayList<>(arho.getL());
         v.add(s);
 
@@ -236,6 +237,15 @@ public class EdgeTimeCPAbe {
 
     }
 
+    /**
+     * 用户权限密钥
+     * @param userID
+     * @param GP
+     * @param AK
+     * @param userkeys 用户密钥
+     * @param attributes
+     * @return
+     */
     public static UserAuthorityKey keyGen(String userID, GlobalParam GP, AuthorityKey AK, Userkeys userkeys, Set<String> attributes) {
         Pairing pairing = PairingFactory.getPairing(GP.getPairingParameters());
 //        AuthorityPublicKeys AKS=GP.getAPKS();
@@ -243,6 +253,7 @@ public class EdgeTimeCPAbe {
 
         Element t = pairing.getZr().newRandomElement().getImmutable();
         Element u = pairing.getZr().newElement();
+
         u.setFromBytes(userkeys.getuUid());
         u = u.getImmutable();
 
@@ -271,7 +282,8 @@ public class EdgeTimeCPAbe {
 
         Element kjk = GP.getG().powZn(ai).mul(ga.powZn(u)).mul(ga.powZn(yi.mul(t)));
         uAKey.setKjk(kjk.toBytes());
-        //未考虑重复属性的情况
+
+        //未考虑重复属性的情况：待解决
         for (String attribute : attributes) {
             UserAttributeKey attKey = new UserAttributeKey(attribute);
 
@@ -280,6 +292,7 @@ public class EdgeTimeCPAbe {
 
             Element kj_xk = attG1.powZn(u).mul(hGID.powZn(yi));
             attKey.setKj_xk(kj_xk.toBytes());
+
             uAKey.getUserAttKeys().put(attribute, attKey);
 
         }
@@ -376,6 +389,7 @@ public class EdgeTimeCPAbe {
         for (String attribute : timeKeyMap.keySet()) {
             String authority = authorityMap.get(attribute);
             Element kj_xk = pairing.getG1().newElement();
+            // 必须要有timeKeyMap的key（属性）值，比如这里的c
             kj_xk.setFromBytes(userkeys.getUserAuthKeys().get(authority).getUserAttKeys().get(attribute).getKj_xk());
 
             Element timeKey = pairing.getG1().newElement();
@@ -550,6 +564,14 @@ public class EdgeTimeCPAbe {
         return new Message(c0.toBytes());
     }
 
+    /**
+     * 点积，标量积
+     * @param v1
+     * @param v2
+     * @param element
+     * @param pairing
+     * @return
+     */
     private static Element dotProduct(List<AccessStructure.MatrixElement> v1, List<Element> v2, Element element, Pairing pairing) {
         if (v1.size() != v2.size()) throw new IllegalArgumentException("different length in acess policy");
         if (element.isImmutable()) {

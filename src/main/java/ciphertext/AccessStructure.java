@@ -70,7 +70,7 @@ public class AccessStructure implements Serializable {
 
     public List<Integer> getIndexesList(Collection<String> pKeys) {
         // initialize
-        Queue<TreeNode> queue = new LinkedList<TreeNode>();
+        Queue<TreeNode> queue = new LinkedList<>();
         queue.add(policyTree);
 
         while (!queue.isEmpty()) {

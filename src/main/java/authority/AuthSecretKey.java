@@ -1,5 +1,7 @@
 package authority;
 
+import java.util.Arrays;
+
 /**
  * @author user01
  * 具体机构私钥
@@ -20,5 +22,13 @@ public class AuthSecretKey {
 
     public byte[] getYi() {
         return yi;
+    }
+
+    @Override
+    public String toString() {
+        return "AuthSecretKey{" +
+                "ai=" + Arrays.toString(ai) +
+                ", yi=" + Arrays.toString(yi) +
+                '}';
     }
 }

@@ -30,4 +30,13 @@ public class AuthorityKey {
     public AuthSecretKey getSecretKey() {
         return secretKey;
     }
+
+    @Override
+    public String toString() {
+        return "AuthorityKey{" +
+                "authorityID='" + authorityID + '\'' +
+                ", \t\npublicKey=" + publicKey +
+                ", \t\nsecretKey=" + secretKey +
+                '}';
+    }
 }

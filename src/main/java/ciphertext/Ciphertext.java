@@ -24,6 +24,11 @@ public class Ciphertext {
         c5 = new ArrayList<byte[]>();
         fID=generateRandomFid();
     }
+
+    /**
+     * 根据当前时间戳 对 100000000 取余
+     * @return
+     */
     public String generateRandomFid(){
         Random random=new Random();
         long time=System.currentTimeMillis();

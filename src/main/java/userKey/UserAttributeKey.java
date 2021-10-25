@@ -6,18 +6,16 @@ public class UserAttributeKey {
     private byte[] kj_xk;
 
 
+    public UserAttributeKey(String attribute) {
+        this.attribute = attribute;
+    }
 
     public byte[] getKj_xk() {
         return kj_xk;
     }
-    public void setKj_xk(byte[]kjk) {
-        this.kj_xk=kjk;
-    }
 
-
-
-    public UserAttributeKey(String attribute) {
-        this.attribute = attribute;
+    public void setKj_xk(byte[] kjk) {
+        this.kj_xk = kjk;
     }
 
     public String getAttribute() {

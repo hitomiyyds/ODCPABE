@@ -22,17 +22,16 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
 
 
     public static void main(String[] args) {
-        // // 所有属性集
+        // 所有属性集
         // String[] attributes = {"a", "b", "c", "d", "e", "f", "g", "h"};
         // System.out.println("属性总数：" + attributes.length);
         // // 属性机构数量
         // int AAs = 3;
         // System.out.println("为AA分配地址，为属性分配AA");
         // for (int i = 0; i < 20; i++) {
-        //     attrManagement(AAs, attributes);
+        //     attrManagementUnrepeatable(AAs, attributes);
         // }
-
-         testODCPABE();
+        testODCPABE();
         // Set<String> attrs = new HashSet<>();
         // String[] attributes = {"a", "b", "c"};
         // Collections.addAll(attrs, attributes);
@@ -53,44 +52,49 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
 
         // 所有属性集
         String[] attributes = {"a", "b", "c", "d", "e", "f", "g", "h"};
-        System.out.println("属性总数：" + attributes.length);
+        System.out.println("属性：" + java.util.Arrays.toString(attributes));
         // 属性机构数量
         int AAs = 3;
         System.out.println("为AA分配地址，为属性分配AA");
-        Map<String, Set<String>> aidWithAttr = attrManagement(AAs, attributes);
+
+        Map<String, Set<String>> aidWithAttr = attrManagementUnrepeatable(AAs, attributes);
 
         // 属性机构密钥集合
         ArrayList<AuthorityKey> authorityKeys = new ArrayList<>();
-
         //  生成属性机构的密钥
         System.out.println("生成AA密钥");
         for (Map.Entry<String, Set<String>> entry : aidWithAttr.entrySet()) {
             authorityKeys.add(EdgeTimeCPAbe.authoritySetup(entry.getKey(), GP, ASKS, entry.getValue()));
         }
-
+        for (AuthorityKey authorityKey : authorityKeys) {
+            System.out.println(authorityKey);
+        }
         //Generate UserKey
-        String user1ID = "user1";
+        String user1ID = Wallet.getAddress();
+        // 设置了用户密钥的用户id和uuid
         Userkeys userkeys = EdgeTimeCPAbe.userRegistry(user1ID, GP);
 
         Date t1 = new Date();
         //Ciphertext generated
         Message m = EdgeCPAbe.generateRandomMessage(GP);
-        System.out.println("原来的内容是：" + Arrays.toString(m.m) + "\n长度为：" + m.m.length);
+        System.out.println("初始明文：" + Arrays.toString(m.m) + "\n长度为：" + m.m.length);
 
-        String policy = "and and and and a b  or c d and e f or g h";
+        // 访问结构生成
+        // String policy = "and and and and a b  or c d and e f or g h";
+        String policy = "and or or or a b  or c d or e f or g h";
         AccessStructure arho = AccessStructure.buildFromPolicy(policy);
 
+        // 加密参数
         Map<String, byte[]> encParams = new HashMap<>();
-
         Ciphertext ct = new Ciphertext();
         String fID = ct.getfID();
         log.info("fID+attribute in Main()=" + fID + "  c");
 
         Date begin = new Date(System.currentTimeMillis() - 100000);
         Date end = new Date(System.currentTimeMillis() + 100000);
-        Date now = new Date();
+        // Date now = new Date();
         String attribute = "c";
-        // 加密参数
+
         EncParam encParam = EdgeTimeCPAbe.genEncParam(GP, fID, begin, end, attribute);
         encParams.put(fID + attribute, encParam.getEncParam());
 
@@ -99,6 +103,8 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
         //Userkey generate
         List<UserAuthorityKey> uAKS = new ArrayList<>();
         int count = 0;
+        // EdgeTimeCPAbe.keyGen 的返回值类型 UserAuthorityKey
+        // 添加的属性必须有 c
         for (Map.Entry<String, Set<String>> entry : aidWithAttr.entrySet()) {
             uAKS.add(EdgeTimeCPAbe.keyGen(user1ID, GP, authorityKeys.get(count++), userkeys, getUserAttr(entry.getValue())));
         }
@@ -137,11 +143,12 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
                 }
             }
         }
-        System.out.println(userAttr);
+        System.out.println("用户属性 " + userAttr);
         return userAttr;
     }
 
     /**
+     * 不可重复的
      * 为属性机构分配地址
      * 为属性集分配属性，
      * 属性机构与属性对应
@@ -151,7 +158,70 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
      * @param attributes 所有的属性
      * @return
      */
-    public static Map<String, Set<String>> attrManagement(int AAs, String[] attributes) {
+    public static Map<String, Set<String>> attrManagementUnrepeatable(int AAs, String[] attributes) {
+        // 设置属性机构aid,并为每个机构的分配属性
+        Map<String, Set<String>> aidWithAttr = new HashMap<>();
+        // 属性机构与aid 一一对应
+        Map<Integer, String> aids = new HashMap<>();
+
+        Set<Integer> isEmpty = new HashSet<>();
+        for (int i = 0; i < AAs; i++) {
+            String aid = Wallet.getAddress();
+            aidWithAttr.put(aid, new HashSet<>());
+            aids.put(i + 1, aid);
+            isEmpty.add(i + 1);
+        }
+        int unit = 50;
+        int maxNum = AAs * unit;
+        Random random = new Random(System.currentTimeMillis());
+        int count = 1;
+        do {
+            // aidWithAttr.clear();
+            for (String attribute : attributes) {
+                int number = random.nextInt(maxNum) + 1;
+                while (number % unit == 0 || number == 1 || number == maxNum) {
+                    number = random.nextInt(maxNum) + 1;
+                }
+                int i = (number / unit) + 1;
+                aidWithAttr.get(aids.get(i)).add(attribute);
+                isEmpty.remove(i);
+            }
+            if (isEmpty.size() != 0) {
+                count++;
+                for (int i = 0; i < AAs; i++) {
+                    aidWithAttr.get(aids.get(i+1)).clear();
+                }
+                if (count >= AAs) {
+                    unit = 10;
+                } else {
+                    unit = unit - count * 10;
+                }
+                maxNum = AAs * unit;
+                System.out.println("循环次数：" + count);
+            } else {
+                break;
+            }
+        } while (true);
+
+        for (Map.Entry<String, Set<String>> entry : aidWithAttr.entrySet()) {
+            System.out.println("key值：" + entry.getKey() + " ---Value值：" + entry.getValue());
+        }
+        System.out.println("===========");
+        return aidWithAttr;
+    }
+
+    /**
+     * 可重复的
+     * 为属性机构分配地址
+     * 为属性集分配属性，
+     * 属性机构与属性对应
+     * 一个属性可以被多个属性机构管理
+     *
+     * @param AAs        属性机构的数量
+     * @param attributes 所有的属性
+     * @return
+     */
+    public static Map<String, Set<String>> attrManagementRepeatable(int AAs, String[] attributes) {
         // 设置属性机构aid,并为每个机构的分配属性
         Map<String, Set<String>> aidWithAttr = new HashMap<>();
         // 属性机构与aid 一一对应
@@ -167,7 +237,7 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
         List<Integer> separates = new ArrayList<Integer>();
         List<Integer> percents = new ArrayList<Integer>();
         while (true) {
-            System.out.println(attrset.size());
+            // System.out.println(attrset.size());
             if (attrset.size() == 0) {
                 break;
             } else {
@@ -195,7 +265,7 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
                         for (String attribute : attributes) {
                             int number = RateRandomNumber.produceRateRandomNumber(1, 100, separates, percents);
                             if (number <= turePercent) {
-                                System.out.println("属性被添加");
+                                // System.out.println("属性被添加");
                                 aidWithAttr.get(aids.get(i)).add(attribute);
                                 if (attrset.contains(attribute)) {
                                     attrset.remove(attribute);
@@ -213,6 +283,7 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
         for (Map.Entry<String, Set<String>> entry : aidWithAttr.entrySet()) {
             System.out.println("key值：" + entry.getKey() + " ---Value值：" + entry.getValue());
         }
+        System.out.println("===========");
         return aidWithAttr;
     }
 
@@ -228,7 +299,7 @@ public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
         System.out.println("属性总数：" + attributes.length);
         // 属性机构数量
         int AAs = 5;
-        Map<String, Set<String>> aidWithAttr = attrManagement(AAs, attributes);
+        Map<String, Set<String>> aidWithAttr = attrManagementUnrepeatable(AAs, attributes);
         // 属性机构密钥集合
         ArrayList<AuthorityKey> authorityKeys = new ArrayList<>();
         //  生成属性机构的密钥

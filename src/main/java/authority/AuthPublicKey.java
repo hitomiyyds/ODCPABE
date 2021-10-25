@@ -1,5 +1,7 @@
 package authority;
 
+import java.util.Arrays;
+
 public class AuthPublicKey {
     private static final long serialVersionUID = 1L;
     private final byte[] eg1g1ai;
@@ -16,5 +18,13 @@ public class AuthPublicKey {
 
     public byte[] getG1yi() {
         return g1yi;
+    }
+
+    @Override
+    public String toString() {
+        return "AuthPublicKey{" +
+                "eg1g1ai=" + Arrays.toString(eg1g1ai) +
+                ", g1yi=" + Arrays.toString(g1yi) +
+                '}';
     }
 }

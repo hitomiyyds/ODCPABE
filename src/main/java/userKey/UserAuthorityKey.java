@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author user01
+ */
 public class UserAuthorityKey {
     private static final long serialVersionUID = 1L;
     private Map<String, UserAttributeKey> userAttKeys;
@@ -16,6 +19,7 @@ public class UserAuthorityKey {
         this.authority = authority;
         userAttKeys=new HashMap<>();
     }
+
     public Map<String, UserAttributeKey> getUserAttKeys() {
         return userAttKeys;
     }

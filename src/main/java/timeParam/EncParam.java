@@ -4,6 +4,9 @@ import java.util.Date;
 
 /**
  * 加密参数
+ * 包含加密参数类型字节数组
+ * 属性
+ * 开始时间及结束时间
  * @author user01
  */
 public class EncParam {
