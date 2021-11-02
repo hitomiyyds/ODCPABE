@@ -12,12 +12,16 @@ import timeParam.EncParam;
 import userKey.UserAuthorityKey;
 import userKey.UserSplitKeys;
 import userKey.Userkeys;
-import util.*;
+import util.EdgeCPAbe;
+import util.EdgeTimeCPAbe;
+import util.RateRandomNumber;
+import util.Wallet;
+
 
 import java.lang.reflect.Proxy;
 import java.util.*;
 
-public class MyTestEdgeTimeCPAbe implements TimeEdgeCPABE {
+public class MyTestEdgeTimeCPAbe implements test.TimeEdgeCPABE {
     private static Logger log = Logger.getLogger(MyTestEdgeTimeCPAbe.class);
 
 
