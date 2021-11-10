@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AssetTransfer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">basic</a> &gt; <a href="index.source.html" class="el_package">org.hyperledger.fabric.samples.assettransfer</a> &gt; <span class="el_source">AssetTransfer.java</span></div><h1>AssetTransfer.java</h1><pre class="source lang-java linenums">/*
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package org.hyperledger.fabric.samples.assettransfer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+import org.hyperledger.fabric.contract.Context;
+import org.hyperledger.fabric.contract.ContractInterface;
+import org.hyperledger.fabric.contract.annotation.Contact;
+import org.hyperledger.fabric.contract.annotation.Contract;
+import org.hyperledger.fabric.contract.annotation.Default;
+import org.hyperledger.fabric.contract.annotation.Info;
+import org.hyperledger.fabric.contract.annotation.License;
+import org.hyperledger.fabric.contract.annotation.Transaction;
+import org.hyperledger.fabric.shim.ChaincodeException;
+import org.hyperledger.fabric.shim.ChaincodeStub;
+import org.hyperledger.fabric.shim.ledger.KeyValue;
+import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
+
+import com.owlike.genson.Genson;
+
+@Contract(
+        name = &quot;basic&quot;,
+        info = @Info(
+                title = &quot;Asset Transfer&quot;,
+                description = &quot;The hyperlegendary asset transfer&quot;,
+                version = &quot;0.0.1-SNAPSHOT&quot;,
+                license = @License(
+                        name = &quot;Apache 2.0 License&quot;,
+                        url = &quot;http://www.apache.org/licenses/LICENSE-2.0.html&quot;),
+                contact = @Contact(
+                        email = &quot;a.transfer@example.com&quot;,
+                        name = &quot;Adrian Transfer&quot;,
+                        url = &quot;https://hyperledger.example.com&quot;)))
+@Default
+<span class="fc" id="L40">public final class AssetTransfer implements ContractInterface {</span>
+
+<span class="fc" id="L42">    private final Genson genson = new Genson();</span>
+
+<span class="fc" id="L44">    private enum AssetTransferErrors {</span>
+<span class="fc" id="L45">        ASSET_NOT_FOUND,</span>
+<span class="fc" id="L46">        ASSET_ALREADY_EXISTS</span>
+    }
+
+    /**
+     * Creates some initial assets on the ledger.
+     *
+     * @param ctx the transaction context
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public void InitLedger(final Context ctx) {
+<span class="fc" id="L56">        ChaincodeStub stub = ctx.getStub();</span>
+
+<span class="fc" id="L58">        CreateAsset(ctx, &quot;asset1&quot;, &quot;blue&quot;, 5, &quot;Tomoko&quot;, 300);</span>
+<span class="fc" id="L59">        CreateAsset(ctx, &quot;asset2&quot;, &quot;red&quot;, 5, &quot;Brad&quot;, 400);</span>
+<span class="fc" id="L60">        CreateAsset(ctx, &quot;asset3&quot;, &quot;green&quot;, 10, &quot;Jin Soo&quot;, 500);</span>
+<span class="fc" id="L61">        CreateAsset(ctx, &quot;asset4&quot;, &quot;yellow&quot;, 10, &quot;Max&quot;, 600);</span>
+<span class="fc" id="L62">        CreateAsset(ctx, &quot;asset5&quot;, &quot;black&quot;, 15, &quot;Adrian&quot;, 700);</span>
+<span class="fc" id="L63">        CreateAsset(ctx, &quot;asset6&quot;, &quot;white&quot;, 15, &quot;Michel&quot;, 700);</span>
+
+<span class="fc" id="L65">    }</span>
+
+    /**
+     * Creates a new asset on the ledger.
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the new asset
+     * @param color the color of the new asset
+     * @param size the size for the new asset
+     * @param owner the owner of the new asset
+     * @param appraisedValue the appraisedValue of the new asset
+     * @return the created asset
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public Asset CreateAsset(final Context ctx, final String assetID, final String color, final int size,
+        final String owner, final int appraisedValue) {
+<span class="fc" id="L81">        ChaincodeStub stub = ctx.getStub();</span>
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (AssetExists(ctx, assetID)) {</span>
+<span class="fc" id="L84">            String errorMessage = String.format(&quot;Asset %s already exists&quot;, assetID);</span>
+<span class="fc" id="L85">            System.out.println(errorMessage);</span>
+<span class="fc" id="L86">            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_ALREADY_EXISTS.toString());</span>
+        }
+
+<span class="fc" id="L89">        Asset asset = new Asset(assetID, color, size, owner, appraisedValue);</span>
+        //Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
+<span class="fc" id="L91">        String sortedJson = genson.serialize(asset);</span>
+<span class="fc" id="L92">        stub.putStringState(assetID, sortedJson);</span>
+
+<span class="fc" id="L94">        return asset;</span>
+    }
+
+    /**
+     * Retrieves an asset with the specified ID from the ledger.
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the asset
+     * @return the asset found on the ledger if there was one
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public Asset ReadAsset(final Context ctx, final String assetID) {
+<span class="fc" id="L106">        ChaincodeStub stub = ctx.getStub();</span>
+<span class="fc" id="L107">        String assetJSON = stub.getStringState(assetID);</span>
+
+<span class="pc bpc" id="L109" title="1 of 4 branches missed.">        if (assetJSON == null || assetJSON.isEmpty()) {</span>
+<span class="fc" id="L110">            String errorMessage = String.format(&quot;Asset %s does not exist&quot;, assetID);</span>
+<span class="fc" id="L111">            System.out.println(errorMessage);</span>
+<span class="fc" id="L112">            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());</span>
+        }
+
+<span class="fc" id="L115">        Asset asset = genson.deserialize(assetJSON, Asset.class);</span>
+<span class="fc" id="L116">        return asset;</span>
+    }
+
+    /**
+     * Updates the properties of an asset on the ledger.
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the asset being updated
+     * @param color the color of the asset being updated
+     * @param size the size of the asset being updated
+     * @param owner the owner of the asset being updated
+     * @param appraisedValue the appraisedValue of the asset being updated
+     * @return the transferred asset
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public Asset UpdateAsset(final Context ctx, final String assetID, final String color, final int size,
+        final String owner, final int appraisedValue) {
+<span class="fc" id="L133">        ChaincodeStub stub = ctx.getStub();</span>
+
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (!AssetExists(ctx, assetID)) {</span>
+<span class="nc" id="L136">            String errorMessage = String.format(&quot;Asset %s does not exist&quot;, assetID);</span>
+<span class="nc" id="L137">            System.out.println(errorMessage);</span>
+<span class="nc" id="L138">            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());</span>
+        }
+
+<span class="fc" id="L141">        Asset newAsset = new Asset(assetID, color, size, owner, appraisedValue);</span>
+        //Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
+<span class="fc" id="L143">        String sortedJson = genson.serialize(newAsset);</span>
+<span class="fc" id="L144">        stub.putStringState(assetID, sortedJson);</span>
+<span class="fc" id="L145">        return newAsset;</span>
+    }
+
+    /**
+     * Deletes asset on the ledger.
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the asset being deleted
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public void DeleteAsset(final Context ctx, final String assetID) {
+<span class="fc" id="L156">        ChaincodeStub stub = ctx.getStub();</span>
+
+<span class="pc bpc" id="L158" title="1 of 2 branches missed.">        if (!AssetExists(ctx, assetID)) {</span>
+<span class="fc" id="L159">            String errorMessage = String.format(&quot;Asset %s does not exist&quot;, assetID);</span>
+<span class="fc" id="L160">            System.out.println(errorMessage);</span>
+<span class="fc" id="L161">            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());</span>
+        }
+
+<span class="nc" id="L164">        stub.delState(assetID);</span>
+<span class="nc" id="L165">    }</span>
+
+    /**
+     * Checks the existence of the asset on the ledger
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the asset
+     * @return boolean indicating the existence of the asset
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public boolean AssetExists(final Context ctx, final String assetID) {
+<span class="fc" id="L176">        ChaincodeStub stub = ctx.getStub();</span>
+<span class="fc" id="L177">        String assetJSON = stub.getStringState(assetID);</span>
+
+<span class="fc bfc" id="L179" title="All 4 branches covered.">        return (assetJSON != null &amp;&amp; !assetJSON.isEmpty());</span>
+    }
+
+    /**
+     * Changes the owner of a asset on the ledger.
+     *
+     * @param ctx the transaction context
+     * @param assetID the ID of the asset being transferred
+     * @param newOwner the new owner
+     * @return the updated asset
+     */
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public Asset TransferAsset(final Context ctx, final String assetID, final String newOwner) {
+<span class="fc" id="L192">        ChaincodeStub stub = ctx.getStub();</span>
+<span class="fc" id="L193">        String assetJSON = stub.getStringState(assetID);</span>
+
+<span class="pc bpc" id="L195" title="1 of 4 branches missed.">        if (assetJSON == null || assetJSON.isEmpty()) {</span>
+<span class="fc" id="L196">            String errorMessage = String.format(&quot;Asset %s does not exist&quot;, assetID);</span>
+<span class="fc" id="L197">            System.out.println(errorMessage);</span>
+<span class="fc" id="L198">            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());</span>
+        }
+
+<span class="fc" id="L201">        Asset asset = genson.deserialize(assetJSON, Asset.class);</span>
+
+<span class="fc" id="L203">        Asset newAsset = new Asset(asset.getAssetID(), asset.getColor(), asset.getSize(), newOwner, asset.getAppraisedValue());</span>
+        //Use a Genson to conver the Asset into string, sort it alphabetically and serialize it into a json string
+<span class="fc" id="L205">        String sortedJson = genson.serialize(newAsset);</span>
+<span class="fc" id="L206">        stub.putStringState(assetID, sortedJson);</span>
+
+<span class="fc" id="L208">        return newAsset;</span>
+    }
+
+    /**
+     * Retrieves all assets from the ledger.
+     *
+     * @param ctx the transaction context
+     * @return array of assets found on the ledger
+     */
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public String GetAllAssets(final Context ctx) {
+<span class="fc" id="L219">        ChaincodeStub stub = ctx.getStub();</span>
+
+<span class="fc" id="L221">        List&lt;Asset&gt; queryResults = new ArrayList&lt;Asset&gt;();</span>
+
+        // To retrieve all assets from the ledger use getStateByRange with empty startKey &amp; endKey.
+        // Giving empty startKey &amp; endKey is interpreted as all the keys from beginning to end.
+        // As another example, if you use startKey = 'asset0', endKey = 'asset9' ,
+        // then getStateByRange will retrieve asset with keys between asset0 (inclusive) and asset9 (exclusive) in lexical order.
+<span class="fc" id="L227">        QueryResultsIterator&lt;KeyValue&gt; results = stub.getStateByRange(&quot;&quot;, &quot;&quot;);</span>
+
+<span class="fc bfc" id="L229" title="All 2 branches covered.">        for (KeyValue result: results) {</span>
+<span class="fc" id="L230">            Asset asset = genson.deserialize(result.getStringValue(), Asset.class);</span>
+<span class="fc" id="L231">            System.out.println(asset);</span>
+<span class="fc" id="L232">            queryResults.add(asset);</span>
+<span class="fc" id="L233">        }</span>
+
+<span class="fc" id="L235">        final String response = genson.serialize(queryResults);</span>
+
+<span class="fc" id="L237">        return response;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

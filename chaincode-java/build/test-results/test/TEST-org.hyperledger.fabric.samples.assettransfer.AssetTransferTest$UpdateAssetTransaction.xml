@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest$UpdateAssetTransaction" tests="2" skipped="0" failures="0" errors="0" timestamp="2021-11-10T08:04:33" hostname="blockchain" time="0.005">
+  <properties/>
+  <testcase name="whenAssetExists()" classname="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest$UpdateAssetTransaction" time="0.002"/>
+  <testcase name="whenAssetDoesNotExist()" classname="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest$UpdateAssetTransaction" time="0.002"/>
+  <system-out><![CDATA[Asset asset1 does not exist
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,17 @@
+
+VAsset@9c1e0536 [assetID=asset1, color=blue, size=5, owner=Tomoko, appraisedValue=300]
+
+SAsset@4a127ad2 [assetID=asset2, color=red, size=5, owner=Brad, appraisedValue=400]
+
+XAsset@162fb7b [assetID=asset3, color=green, size=10, owner=Jin Soo, appraisedValue=500]
+
+VAsset@9e24840d [assetID=asset4, color=yellow, size=10, owner=Max, appraisedValue=600]
+
+XAsset@5e2fad89 [assetID=asset5, color=black, size=15, owner=Adrian, appraisedValue=700]
+
+XAsset@a1305d03 [assetID=asset6, color=white, size=15, owner=Michel, appraisedValue=800]
+Asset asset1 does not exist
+Asset asset1 does not exist
+Asset asset1 does not exist
+Asset asset1 already exists
+Asset asset1 does not exist

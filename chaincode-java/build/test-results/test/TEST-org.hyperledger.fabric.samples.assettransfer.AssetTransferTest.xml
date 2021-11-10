@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2021-11-10T08:04:32" hostname="blockchain" time="0.634">
+  <properties/>
+  <testcase name="invokeGetAllAssetsTransaction()" classname="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest" time="0.6"/>
+  <testcase name="invokeInitLedgerTransaction()" classname="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest" time="0.021"/>
+  <testcase name="invokeUnknownTransaction()" classname="org.hyperledger.fabric.samples.assettransfer.AssetTransferTest" time="0.011"/>
+  <system-out><![CDATA[Asset@9c1e0536 [assetID=asset1, color=blue, size=5, owner=Tomoko, appraisedValue=300]
+Asset@4a127ad2 [assetID=asset2, color=red, size=5, owner=Brad, appraisedValue=400]
+Asset@162fb7b [assetID=asset3, color=green, size=10, owner=Jin Soo, appraisedValue=500]
+Asset@9e24840d [assetID=asset4, color=yellow, size=10, owner=Max, appraisedValue=600]
+Asset@5e2fad89 [assetID=asset5, color=black, size=15, owner=Adrian, appraisedValue=700]
+Asset@a1305d03 [assetID=asset6, color=white, size=15, owner=Michel, appraisedValue=800]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
